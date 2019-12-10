@@ -5,12 +5,8 @@ use App\Controller\AppController;
 use App\Exception\EmailNotSentException;
 use App\Exception\UserNotActivatedException;
 use App\Exception\UserUnauthorizedException;
-use App\Exception\ValidationErrorsException;
-use Cake\Http\Exception\InternalErrorException;
-use Cake\Http\Exception\UnauthorizedException;
-// use Cake\ORM\TableRegistry;
+use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
-use Firebase\JWT\ExpiredException;
 
 /**
  * Api/Auths Controller
@@ -22,7 +18,7 @@ class AuthController extends AppController
     {
         parent::initialize();
         // $this->Auth->allow(['login', 'register', 'activate']);
-        // $this->UserModel = TableRegistry::getTableLocator()->get('Users');
+        $this->UserModel = TableRegistry::getTableLocator()->get('Users');
     }
 
     /**
@@ -72,18 +68,18 @@ class AuthController extends AppController
     {
         $this->request->allowMethod('post');
         $this->loadComponent('HasherHandler');
-        $this->loadComponent('UserHandler');
+        // $this->loadComponent('UserHandler');
         $requestData = $this->request->getData();
         $requestData['activation_key'] = $this->HasherHandler->generateRand();
         $user = $this->UserModel->addUser($requestData);
-        try {
-            $this->UserHandler->sendActivationMail(
-                $this->request->getData(),
-                Router::url('/api/auth/activate', true)
-            );
-        } catch (\Exception $e) {
-            throw new EmailNotSentException(__($e->getMessage()));
-        }
+        // try {
+        //     $this->UserHandler->sendActivationMail(
+        //         $this->request->getData(),
+        //         Router::url('/api/auth/activate', true)
+        //     );
+        // } catch (\Exception $e) {
+        //     throw new EmailNotSentException(__($e->getMessage()));
+        // }
 
         return $this->APIResponse->responseCreated($user);
     }

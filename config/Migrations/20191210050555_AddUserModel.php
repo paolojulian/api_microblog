@@ -10,7 +10,7 @@ class AddUserModel extends AbstractMigration
             'limit' => 20,
             'null' => false,
         ]);
-        $table->addColumn('email', 'email', [
+        $table->addColumn('email', 'string', [
             'limit' => 255,
             'null' => false,
         ]);
@@ -80,6 +80,8 @@ class AddUserModel extends AbstractMigration
             'update' => 'CURRENT_TIMESTAMP',
             'null' => true,
         ]);
+        
+        $table->addIndex(['username', 'email'], ['unique' => true]);
         $table->save();
     }
 }
