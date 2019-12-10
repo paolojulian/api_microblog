@@ -11,6 +11,6 @@ class UserForbiddenException extends BaseException
         if ($userId) {
             $message = "User with ID: $userId is trying to access";
         }
-        parent::__construct($message, 413);
+        parent::__construct($message, 403);
     }
 }

@@ -20,7 +20,7 @@ class APIResponseComponent extends Component
      * 
      * @param int @statusCode - The response http status code
      * 
-     * @return object
+     * @return \Cake\Controller\Controller|null Controller instance or null if not set.
      */
     public function jsonResponse(
         int $statusCode,

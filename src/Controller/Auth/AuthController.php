@@ -2,15 +2,15 @@
 namespace App\Controller\Auth;
 
 use App\Controller\AppController;
+use App\Exception\EmailNotSentException;
+use App\Exception\UserNotActivatedException;
+use App\Exception\UserUnauthorizedException;
 use App\Exception\ValidationErrorsException;
 use Cake\Http\Exception\InternalErrorException;
+use Cake\Http\Exception\UnauthorizedException;
 // use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
-use Exception;
-use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
-use Firebase\JWT\SignatureInvalidException;
-use UnexpectedValueException;
 
 /**
  * Api/Auths Controller
@@ -33,6 +33,11 @@ class AuthController extends AppController
      * Only allow activated accounts
      * 
      * @return json - containing Jwt Token
+     * 
+     * @throws UserUnauthorizedException Provided Login Credentials is invalid
+     * @throws UserNotActivatedException User is not yet activated based on the database
+     * 
+     * @uses component - JWTHandler
      */
     public function login()
     {
@@ -40,10 +45,10 @@ class AuthController extends AppController
         $this->loadComponent('JWTHandler');
         $user = $this->Auth->identify();
         if ( ! $user) {
-            throw new ValidationErrorsException(null, 'Username or password is incorrect');
+            throw new UserUnauthorizedException();
         }
         if ( ! $user['is_activated']) {
-            throw new ValidationErrorsException(null, 'Please activate your account first');
+            throw new UserNotActivatedException();
         }
 
         $this->APIResponse->responseData(['token' => $this->JWTHandler->encode($user)]);
@@ -56,7 +61,12 @@ class AuthController extends AppController
      * Signs up a user,
      * Sends an activation email after a successful registration
      * 
-     * @return status 201 - created
+     * @return \App\Model\Entity\User
+     * 
+     * @throws EmailNotSentException If something unknown happened that the email failed to send
+     * 
+     * @uses component - UserHandler
+     * @uses component - HasherHandler
      */
     public function register()
     {
@@ -72,7 +82,7 @@ class AuthController extends AppController
                 Router::url('/api/auth/activate', true)
             );
         } catch (\Exception $e) {
-            throw new InternalErrorException(__($e->getMessage()));
+            throw new EmailNotSentException(__($e->getMessage()));
         }
 
         return $this->APIResponse->responseCreated($user);
@@ -86,16 +96,16 @@ class AuthController extends AppController
      * 
      * Activates the user by the its activation key
      * 
-     * @return void
+     * @return null
      */
     public function activate()
     {
-        // $this->request->allowMethod('get');
-        // $key = $this->request->getParam('key');
-        // if ( ! $this->UserModel->activateAccount($key)) {
-        //     return $this->redirect('/activation-error');
-        // }
-        // return $this->redirect('/');
+        $this->request->allowMethod('get');
+        $key = $this->request->getParam('key');
+        if ( ! $this->UserModel->activateAccount($key)) {
+            return $this->redirect('/activation-error');
+        }
+        return $this->redirect('/login');
     }
 
     /**
@@ -116,6 +126,7 @@ class AuthController extends AppController
 
     public function test()
     {
+        throw new UserNotActivatedException();
         $this->APIResponse->responseOk();
     }
 }

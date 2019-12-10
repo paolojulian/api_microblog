@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "76f6075c6667db710e1ab8fed70755dc",
+    "content-hash": "2b43c852c41b4911534d4c0a73ae6d87",
     "packages": [
         {
             "name": "admad/cakephp-jwt-auth",
