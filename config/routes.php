@@ -49,8 +49,8 @@ $apiRoutes = function (RouteBuilder $routes) {
         )->setMethods(['POST']);
 
         $routes->connect(
-            '/test',
-            ['controller' => 'Auth', 'action' => 'test']
+            '/activate/:key',
+            ['controller' => 'Auth', 'action' => 'activate']
         )->setMethods(['GET']);
     });
 
@@ -110,42 +110,64 @@ $apiRoutes = function (RouteBuilder $routes) {
         $routes->connect(
             '/:id',
             ['controller' => 'Posts', 'action' => 'edit']
-        )->setMethods(['PUT']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['PUT']);
 
         $routes->connect(
             '/:id',
             ['controller' => 'Posts', 'action' => 'delete']
-        )->setMethods(['DELETE']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['DELETE']);
 
         $routes->connect(
             '/:id/share',
             ['controller' => 'Posts', 'action' => 'share']
-        )->setMethods(['POST']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['POST']);
 
         $routes->connect(
             '/:id/likes',
             ['controller' => 'Likes', 'action' => 'add']
-        )->setMethods(['POST']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['POST']);
 
         $routes->connect(
             '/:id/comments',
             ['controller' => 'Comments', 'action' => 'index']
-        )->setMethods(['GET']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['GET']);
 
         $routes->connect(
             '/:id/comments',
             ['controller' => 'Comments', 'action' => 'add']
-        )->setMethods(['POST']);
+        )
+        ->setPatterns(['id' => '\d+'])
+        ->setMethods(['POST']);
 
         $routes->connect(
             '/:id/comments/:commentId',
             ['controller' => 'Comments', 'action' => 'edit']
-        )->setMethods(['PUT']);
+        )
+        ->setPatterns([
+            'id' => '\d+',
+            'commentId' => '\d+'
+        ])
+        ->setMethods(['PUT']);
 
         $routes->connect(
             '/:id/comments/:commentId',
             ['controller' => 'Comments', 'action' => 'delete']
-        )->setMethods(['DELETE']);
+        )
+        ->setPatterns([
+            'id' => '\d+',
+            'commentId' => '\d+'
+        ])
+        ->setMethods(['PUT']);
     };
 
     $routes->prefix('username', $usersRoutes);

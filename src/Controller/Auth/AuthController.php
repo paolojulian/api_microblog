@@ -4,9 +4,9 @@ namespace App\Controller\Auth;
 use App\Controller\AppController;
 use App\Exception\EmailNotSentException;
 use App\Exception\UserNotActivatedException;
+use App\Exception\UserNotFoundException;
 use App\Exception\UserUnauthorizedException;
 use Cake\ORM\TableRegistry;
-use Cake\Routing\Router;
 
 /**
  * Api/Auths Controller
@@ -17,7 +17,7 @@ class AuthController extends AppController
     public function initialize()
     {
         parent::initialize();
-        // $this->Auth->allow(['login', 'register', 'activate']);
+        $this->Auth->allow(['login', 'register', 'activate']);
         $this->UserModel = TableRegistry::getTableLocator()->get('Users');
     }
 
@@ -59,8 +59,6 @@ class AuthController extends AppController
      * 
      * @return \App\Model\Entity\User
      * 
-     * @throws EmailNotSentException If something unknown happened that the email failed to send
-     * 
      * @uses component - UserHandler
      * @uses component - HasherHandler
      */
@@ -68,20 +66,17 @@ class AuthController extends AppController
     {
         $this->request->allowMethod('post');
         $this->loadComponent('HasherHandler');
-        // $this->loadComponent('UserHandler');
-        $requestData = $this->request->getData();
-        $requestData['activation_key'] = $this->HasherHandler->generateRand();
-        $user = $this->UserModel->addUser($requestData);
-        // try {
-        //     $this->UserHandler->sendActivationMail(
-        //         $this->request->getData(),
-        //         Router::url('/api/auth/activate', true)
-        //     );
-        // } catch (\Exception $e) {
-        //     throw new EmailNotSentException(__($e->getMessage()));
-        // }
+        $this->loadComponent('UserHandler');
 
-        return $this->APIResponse->responseCreated($user);
+        $requestData = $this->request->getData();
+        // Add activation_key for user
+        $requestData['activation_key'] = $this->HasherHandler->generateRand();
+
+        $user = $this->UserModel->addUser($requestData);
+
+        // Send mail after saving to db
+        $this->UserHandler->sendActivationMail($requestData);
+        return $this->APIResponse->responseCreated(['user' => $user]);
     }
 
     /**
@@ -98,7 +93,13 @@ class AuthController extends AppController
     {
         $this->request->allowMethod('get');
         $key = $this->request->getParam('key');
-        if ( ! $this->UserModel->activateAccount($key)) {
+        try {
+            if ( ! $this->UserModel->activateAccount($key)) {
+                throw new \Exception();
+            }
+        } catch (UserNotFoundException $e) {
+            return $this->redirect('/not-found');
+        } catch (\Exception $e) {
             return $this->redirect('/activation-error');
         }
         return $this->redirect('/login');
@@ -118,11 +119,5 @@ class AuthController extends AppController
         // $user->birthdate->format('Y-m-d');
         // $user->birthdate = $user->birthdate->format('Y-m-d');
         // return $this->responseData($user);
-    }
-
-    public function test()
-    {
-        throw new UserNotActivatedException();
-        $this->APIResponse->responseOk();
     }
 }

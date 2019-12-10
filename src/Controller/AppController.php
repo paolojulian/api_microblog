@@ -38,41 +38,43 @@ class AppController extends Controller
     public function initialize()
     {
         parent::initialize();
-        $this->loadComponent('RequestHandler');
+        $this->loadComponent('RequestHandler', [
+            'enableBeforeRedirect' => false,
+        ]);
         $this->loadComponent('APIResponse');
-        // $this->loadComponent(
-        //     'Auth',
-        //     [
-        //         'storage' => 'Memory',
-        //         'authorize' => ['Controller'],
-        //         'authenticate' => [
-        //             'Form' => [
-        //                 'fields' => [
-        //                     'username' => 'username',
-        //                     'password' => 'password',
-        //                 ],
-        //             ],
-        //             'ADmad/JwtAuth.Jwt' => [
-        //                 'parameter' => 'token',
-        //                 'userModel' => 'Users',
-        //                 'fields' => [
-        //                     'username' => 'id',
-        //                 ],
-        //                 // Boolean indicating whether the "sub" claim of JWT payload
-        //                 // should be used to query the Users model and get user info.
-        //                 // If set to `false` JWT's payload is directly returned.
-        //                 'queryDatasource' => true,
-        //             ],
-        //         ],
+        $this->loadComponent(
+            'Auth',
+            [
+                'storage' => 'Memory',
+                'authorize' => ['Controller'],
+                'authenticate' => [
+                    'Form' => [
+                        'fields' => [
+                            'username' => 'username',
+                            'password' => 'password',
+                        ],
+                    ],
+                    'ADmad/JwtAuth.Jwt' => [
+                        'parameter' => 'token',
+                        'userModel' => 'Users',
+                        'fields' => [
+                            'username' => 'id',
+                        ],
+                        // Boolean indicating whether the "sub" claim of JWT payload
+                        // should be used to query the Users model and get user info.
+                        // If set to `false` JWT's payload is directly returned.
+                        'queryDatasource' => true,
+                    ],
+                ],
 
-        //         'unauthorizedRedirect' => false,
-        //         'checkAuthIn' => 'Controller.initialize',
+                'unauthorizedRedirect' => false,
+                'checkAuthIn' => 'Controller.initialize',
 
-        //         // If you don't have a login action in your application set
-        //         // 'loginAction' to false to prevent getting a MissingRouteException.
-        //         'loginAction' => '/api/auth/login',
-        //     ]
-        // );
+                // If you don't have a login action in your application set
+                // 'loginAction' to false to prevent getting a MissingRouteException.
+                'loginAction' => '/api/auth/login',
+            ]
+        );
     }
 
 }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Table;
 
+use App\Exception\UserNotFoundException;
 use App\Exception\ValidationErrorsException;
 use Cake\Http\Exception\InternalErrorException;
 use Cake\ORM\Query;
@@ -45,6 +46,7 @@ class UsersTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+        $this->addBehavior('Trimmer');
 
         $this->hasMany('Comments', [
             'foreignKey' => 'user_id',
@@ -92,7 +94,7 @@ class UsersTable extends Table
         $validator
             ->requirePresence('email', 'create', __('Email is required'))
             ->notEmptyString('email', __('Email is required'))
-            ->email('email')
+            ->email('email', false, __('Invalid email'))
             ->maxLength('email', 255, __('Up to 255 characters only'))
             ->add('email', [
                 'unique' => [
@@ -105,18 +107,12 @@ class UsersTable extends Table
         $validator
             ->requirePresence('mobile', 'create', __('Mobile is required'))
             ->notEmptyString('mobile', __('Mobile is required'))
-            ->integer('mobile')
+            ->integer('mobile', __('Mobile should only contain number'))
             ->maxLength('mobile', 50, __('Up to 50 characters only'));
 
         $validator
-            ->scalar('password')
-            ->maxLength('password', 255)
-            ->requirePresence('password', 'create')
-            ->notEmptyString('password');
-
-        $validator
             ->requirePresence('first_name', true, __('First name is required'))
-            ->notEmptyString('first_name', __('First name is required'), true)
+            ->notEmptyString('first_name', __('First name is required'))
             ->scalar('first_name', __('First name should be scalar'))
             ->maxLength('first_name', 70, __('Up to 70 characters only'))
             ->add('first_name', [
@@ -128,10 +124,10 @@ class UsersTable extends Table
 
         $validator
             ->requirePresence('last_name', true, __('Last name is required'))
-            ->notEmptyString('last_name', __('Last name is required'), true)
-            ->scalar('last_name', __('Last name should be scalar'), true)
+            ->notEmptyString('last_name', __('Last name is required'))
+            ->scalar('last_name', __('Last name should be scalar'))
             ->maxLength('last_name', 35, __('Up to 35 characters only'))
-            ->add('first_name', [
+            ->add('last_name', [
                 'lettersOnly' => [
                     'rule' => ['custom', '/^[^%#\/*@!0-9]+$/'],
                     'message' => 'Letters only'
@@ -140,8 +136,8 @@ class UsersTable extends Table
 
         $validator
             ->requirePresence('birthdate', true, __('Birthdate is required'))
-            ->notEmptyDateTime('birthdate', __('Birthdate is required'), true)
-            ->dateTime('birthdate');
+            ->notEmptyDateTime('birthdate', __('Birthdate is required'))
+            ->date('birthdate');
 
         $validator
             ->scalar('lot')
@@ -180,10 +176,10 @@ class UsersTable extends Table
             ->maxLength('country', 90, __('Up to 90 characters only'));
 
         $validator
-            ->scalar('zipcode')
-            ->maxLength('zipcode', 18, __('Up to 18 characters only'))
             ->requirePresence('zipcode', 'create', __('Zipcode is required'))
-            ->notEmptyString('zipcode');
+            ->notEmptyString('zipcode', __('Zipcode is required'))
+            ->scalar('zipcode')
+            ->maxLength('zipcode', 18, __('Up to 18 characters only'));
 
         $validator
             ->scalar('activation_key')
@@ -198,6 +194,20 @@ class UsersTable extends Table
         $validator
             ->dateTime('deleted')
             ->allowEmptyDateTime('deleted');
+
+        $validator
+            ->scalar('password')
+            ->maxLength('password', 255)
+            ->requirePresence('password', 'create', __('Password is required'))
+            ->notEmptyString('password', __('Password is required'));
+
+        $validator
+            ->requirePresence('confirm_password', 'create', __('Confirm password is required'))
+            ->notEmptyString('confirm_password', __('Confirm password is required'))
+            ->add('confirm_password', 'no-misspelling', [
+                'rule' => ['compareWith', 'password'],
+                'message' => 'Password confirmation does not match password'
+            ]);
 
         return $validator;
     }
@@ -214,7 +224,7 @@ class UsersTable extends Table
     public function addUser(array $data)
     {
         $user = $this->newEntity($data);
-        $errors = $user->errors();
+        $errors = $user->getErrors();
         if ($errors) {
             throw new ValidationErrorsException($user);
         }
@@ -222,6 +232,34 @@ class UsersTable extends Table
             throw new InternalErrorException();
         }
 
+        return $user;
+    }
+
+    /**
+     * Activates the user
+     * Updates the is_activated as true account column on Users table
+     * 
+     * @param string $key - The activation key to match the user
+     * 
+     * @return bool
+     * 
+     * @throws UserNotFoundException - If user with given activation key is not found
+     * @throws InternalErrorException - Db errors
+     */
+    public function activateAccount(string $key)
+    {
+        $user = $this
+            ->find()
+            ->where(['activation_key' => $key])
+            ->first();
+
+        if ( ! $user) {
+            throw new UserNotFoundException(0);
+        }
+        $user->is_activated = b'1';
+        if ( ! $this->save($user)) {
+            throw new InternalErrorException();
+        }
         return true;
     }
 

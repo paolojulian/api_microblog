@@ -21,7 +21,7 @@ class HasherHandlerComponent extends Component
      * 
      * @return string
      */
-    public function generateRand($key = 'J0hNM4Y3R')
+    public function generateRand(string $key = 'J0hNM4Y3R')
     {
         $timeStr = str_replace("0.", "", microtime());
         $timeStr = str_replace(" ", "", $timeStr);

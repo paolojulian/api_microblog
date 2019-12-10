@@ -3,6 +3,7 @@ namespace App\Controller\Component;
 
 use Cake\Controller\Component;
 use App\Lib\Utils\ImageResizerHelper;
+use Cake\Routing\Router;
 
 /**
  * UserHandler component
@@ -23,9 +24,13 @@ class UserHandlerComponent extends Component
      * Assumes everything in data is already validated
      * 
      * @param array $data - User Object
+     * @param string $serverName - The server name
+     * 
+     * @return bool
      */
-    public function sendActivationMail(array $data, string $serverName)
+    public function sendActivationMail(array $data)
     {
+        $serverName = Router::url('/api/auth/activate', true);
         $this->MailHandler->sendActivationMail(
             $data['email'],
             [

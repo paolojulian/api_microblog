@@ -1,6 +1,7 @@
 <?php
 namespace App\Test\TestCase\Controller;
 
+use App\Test\Utils\TokenGenerator;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -20,6 +21,19 @@ class ApiTestCase extends TestCase
     public function setUp()
     {
         parent::setUp();
+        if ($this->requireToken) {
+            $token = TokenGenerator::getToken($this->loggedInUser);
+            $this->addAuthorizationHeader($token);
+        } else {
+            $this->configRequest([
+                'headers' => $this->requestHeaders
+            ]);
+        }
+    }
+
+    protected function addAuthorizationHeader(string $token)
+    {
+        $this->requestHeaders['Authorization'] = 'Bearer ' . $token;
         $this->configRequest([
             'headers' => $this->requestHeaders
         ]);
