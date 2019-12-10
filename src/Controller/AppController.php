@@ -15,7 +15,6 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
-use Cake\Event\Event;
 
 /**
  * Application Controller
@@ -27,7 +26,6 @@ use Cake\Event\Event;
  */
 class AppController extends Controller
 {
-
     /**
      * Initialization hook method.
      *
@@ -40,16 +38,41 @@ class AppController extends Controller
     public function initialize()
     {
         parent::initialize();
+        $this->loadComponent('RequestHandler');
+        $this->loadComponent('APIResponse');
+        // $this->loadComponent(
+        //     'Auth',
+        //     [
+        //         'storage' => 'Memory',
+        //         'authorize' => ['Controller'],
+        //         'authenticate' => [
+        //             'Form' => [
+        //                 'fields' => [
+        //                     'username' => 'username',
+        //                     'password' => 'password',
+        //                 ],
+        //             ],
+        //             'ADmad/JwtAuth.Jwt' => [
+        //                 'parameter' => 'token',
+        //                 'userModel' => 'Users',
+        //                 'fields' => [
+        //                     'username' => 'id',
+        //                 ],
+        //                 // Boolean indicating whether the "sub" claim of JWT payload
+        //                 // should be used to query the Users model and get user info.
+        //                 // If set to `false` JWT's payload is directly returned.
+        //                 'queryDatasource' => true,
+        //             ],
+        //         ],
 
-        $this->loadComponent('RequestHandler', [
-            'enableBeforeRedirect' => false,
-        ]);
-        $this->loadComponent('Flash');
+        //         'unauthorizedRedirect' => false,
+        //         'checkAuthIn' => 'Controller.initialize',
 
-        /*
-         * Enable the following component for recommended CakePHP security settings.
-         * see https://book.cakephp.org/3.0/en/controllers/components/security.html
-         */
-        //$this->loadComponent('Security');
+        //         // If you don't have a login action in your application set
+        //         // 'loginAction' to false to prevent getting a MissingRouteException.
+        //         'loginAction' => '/api/auth/login',
+        //     ]
+        // );
     }
+
 }
