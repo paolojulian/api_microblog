@@ -1,75 +1,51 @@
 <?php
 namespace App\Test\TestCase\Controller\Posts;
 
-use App\Controller\Posts\PostsController;
+use App\Test\TestCase\Controller\ApiTestCase;
 use Cake\TestSuite\IntegrationTestTrait;
-use Cake\TestSuite\TestCase;
 
 /**
- * App\Controller\Posts\PostsController Test Case
+ * App\Controller\Users\UsersController Test Case
  *
- * @uses \App\Controller\Posts\PostsController
+ * @uses \App\Controller\Users\UsersController
  */
-class PostsControllerTest extends TestCase
+class CreatePostsControllerTest extends ApiTestCase
 {
     use IntegrationTestTrait;
 
+    protected $requireToken = true;
     /**
      * Fixtures
      *
      * @var array
      */
-    public $fixtures = [
-        'app.Posts',
-    ];
+    public $fixtures = ['app.Users', 'app.Posts'];
 
-    /**
-     * Test index method
-     *
-     * @return void
-     */
-    public function testIndex()
+    public function testINVALIDblankPresenceWillReturn422()
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $data = [];
+        $this->post("/posts", $data);
+        $this->assertResponseCode(422);
+        $this->assertResponseContains('Body is required');
     }
 
-    /**
-     * Test view method
-     *
-     * @return void
-     */
-    public function testView()
+    public function testINVALIDemptyStringWillReturn422()
     {
-        $this->markTestIncomplete('Not implemented yet.');
+        $data = [
+            'body' => '',
+        ];
+        $this->post("/posts", $data);
+        $this->assertResponseCode(422);
+        $this->assertResponseContains('Body is required');
     }
 
-    /**
-     * Test add method
-     *
-     * @return void
-     */
-    public function testAdd()
+    public function testINVALIDwhiteSpacesWillReturn422()
     {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
-
-    /**
-     * Test edit method
-     *
-     * @return void
-     */
-    public function testEdit()
-    {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
-
-    /**
-     * Test delete method
-     *
-     * @return void
-     */
-    public function testDelete()
-    {
-        $this->markTestIncomplete('Not implemented yet.');
+        $data = [
+            'body' => ' ',
+        ];
+        $this->post("/posts", $data);
+        $this->assertResponseCode(422);
+        $this->assertResponseContains('Body is required');
     }
 }

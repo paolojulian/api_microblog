@@ -97,7 +97,7 @@ $apiRoutes = function (RouteBuilder $routes) {
     };
 
     // posts
-    $postRoutes = function (RouteBuilder $routes) {
+    $routes->prefix('posts', function (RouteBuilder $routes) {
         $routes->connect(
             '/',
             ['controller' => 'Posts', 'action' => 'index']
@@ -174,10 +174,9 @@ $apiRoutes = function (RouteBuilder $routes) {
             'commentId' => '\d+'
         ])
         ->setMethods(['PUT']);
-    };
+    });
 
     $routes->prefix('search', $searchRoutes);
-    $routes->prefix('posts', $postRoutes);
 
     $routes->fallbacks(DashedRoute::class);
 };
