@@ -52,14 +52,6 @@ class User extends Entity
         'first_name' => true,
         'last_name' => true,
         'birthdate' => true,
-        'lot' => true,
-        'block' => true,
-        'street' => true,
-        'subdivision' => true,
-        'city' => true,
-        'province' => true,
-        'country' => true,
-        'zipcode' => true,
         'created' => true,
         'modified' => true,
         'is_activated' => true,
@@ -69,6 +61,7 @@ class User extends Entity
         'likes' => true,
         'notifications' => true,
         'posts' => true,
+        'address' => true,
     ];
 
     /**

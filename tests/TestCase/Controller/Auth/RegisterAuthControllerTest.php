@@ -13,7 +13,7 @@ class RegisterAuthsControllerTest extends ApiTestCase
 {
     use IntegrationTestTrait;
 
-    public $fixtures = ['app.Users'];
+    public $fixtures = ['app.Users', 'app.Addresses'];
     /** INVALID */
 
     public function testINVALIDmissingFields()
@@ -33,6 +33,26 @@ class RegisterAuthsControllerTest extends ApiTestCase
         $this->assertResponseContains('Zipcode is required');
     }
 
+    public function testINVALIDmissingAddress()
+    {
+        $data = [
+            'username' => 'newuserfortest',
+            'email' => 'newuserfortest@gmail.com',
+            'mobile' => '09279488654',
+            'first_name' => 'Paolo Vincent',
+            'last_name' => 'Julian',
+            'birthdate' => '1994-07-30',
+            'password' => 'qwe123',
+            'confirm_password' => 'qwe123',
+        ];
+        $this->post('/auth/register', $data);
+        $this->assertResponseCode(422);
+        $this->assertResponseContains(422);
+        $this->assertResponseContains('data');
+        $this->assertResponseContains('Country is required');
+        $this->assertResponseContains('Zipcode is required');
+    }
+
     public function testINVALIDblankFields()
     {
         $data = [
@@ -42,8 +62,10 @@ class RegisterAuthsControllerTest extends ApiTestCase
             'first_name' => '',
             'last_name' => '',
             'birthdate' => '',
-            'country' => '',
-            'zipcode' => '',
+            'address' => [
+                'country' => '',
+                'zipcode' => '',
+            ]
         ];
         $this->post('/auth/register', $data);
         $this->assertResponseCode(422);
@@ -70,10 +92,12 @@ class RegisterAuthsControllerTest extends ApiTestCase
             'first_name' => ' ',
             'last_name' => ' ',
             'birthdate' => ' ',
-            'country' => ' ',
-            'zipcode' => ' ',
             'password' => ' ',
             'confirm_password' => ' ',
+            'address' => [
+                'country' => ' ',
+                'zipcode' => ' ',
+            ]
         ];
         $this->post('/auth/register', $data);
         $this->assertResponseCode(422);
@@ -153,20 +177,24 @@ class RegisterAuthsControllerTest extends ApiTestCase
             'first_name' => 'Paolo Vincent',
             'last_name' => 'Julian',
             'birthdate' => '1994-07-30',
-            'lot' => '18B',
-            'block' => '',
-            'street' => 'Dagsian',
-            'province' => 'Benguet',
-            'city' => 'Baguio',
-            'country' => 'Philippines',
-            'zipcode' => '2600',
             'password' => 'qwe123',
-            'confirm_password' => 'qwe123'
+            'confirm_password' => 'qwe123',
+            'address' => [
+                'lot' => '18B',
+                'block' => '',
+                'street' => 'Dagsian',
+                'province' => 'Benguet',
+                'city' => 'Baguio',
+                'country' => 'Philippines',
+                'zipcode' => '2600',
+            ],
         ];
         $this->post('/auth/register', $data);
         $this->assertResponseCode(201);
         $this->assertResponseContains(201);
         $this->assertResponseContains('data');
         $this->assertResponseContains('newuserfortest');
+        $this->assertResponseContains('address');
+        $this->assertResponseContains('country');
     }
 }

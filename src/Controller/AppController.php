@@ -72,9 +72,13 @@ class AppController extends Controller
 
                 // If you don't have a login action in your application set
                 // 'loginAction' to false to prevent getting a MissingRouteException.
-                'loginAction' => '/api/auth/login',
+                'loginAction' => '/auth/login',
             ]
         );
     }
 
+    public function isAuthorized()
+    {
+        return true;
+    }
 }

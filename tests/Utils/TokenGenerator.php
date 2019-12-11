@@ -31,6 +31,6 @@ class TokenGenerator
         $payload['iat'] = $time;
         $payload['nbf'] = $time;
         $payload['exp'] = $time + 86400;// One day expiration
-        return JWT::encode($payload, Security::salt());
+        return JWT::encode($payload, Security::getSalt());
     }
 }

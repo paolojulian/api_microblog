@@ -54,8 +54,7 @@ $apiRoutes = function (RouteBuilder $routes) {
         )->setMethods(['GET']);
     });
 
-    // users
-    $usersRoutes = function (RouteBuilder $routes) {
+    $routes->prefix('users', function (RouteBuilder $routes) {
         $routes->connect(
             '/',
             ['controller' => 'Users', 'action' => 'edit']
@@ -67,10 +66,17 @@ $apiRoutes = function (RouteBuilder $routes) {
         )->setMethods(['GET']);
 
         $routes->connect(
+            '/:username/follow',
+            ['controller' => 'Users', 'action' => 'follow']
+        )->setMethods(['POST']);
+
+        $routes->connect(
             '/image',
             ['controller' => 'Users', 'action' => 'updateImage']
         )->setMethods(['PATCH']);
-    };
+    });
+
+    // users
 
     // search
     $searchRoutes = function (RouteBuilder $routes) {
@@ -170,7 +176,6 @@ $apiRoutes = function (RouteBuilder $routes) {
         ->setMethods(['PUT']);
     };
 
-    $routes->prefix('username', $usersRoutes);
     $routes->prefix('search', $searchRoutes);
     $routes->prefix('posts', $postRoutes);
 

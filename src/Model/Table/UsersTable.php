@@ -52,7 +52,11 @@ class UsersTable extends Table
             'foreignKey' => 'user_id',
         ]);
         $this->hasMany('Followers', [
+            'foreignKey' => 'following_id',
+        ]);
+        $this->hasMany('Following', [
             'foreignKey' => 'user_id',
+            'className' => 'Followers'
         ]);
         $this->hasMany('Likes', [
             'foreignKey' => 'user_id',
@@ -63,6 +67,8 @@ class UsersTable extends Table
         $this->hasMany('Posts', [
             'foreignKey' => 'user_id',
         ]);
+        $this->hasOne('Addresses')
+            ->setProperty('address');
     }
 
     /**
@@ -140,48 +146,6 @@ class UsersTable extends Table
             ->date('birthdate');
 
         $validator
-            ->scalar('lot')
-            ->maxLength('lot', 10, __('Up to 10 characters only'))
-            ->allowEmptyString('lot');
-
-        $validator
-            ->scalar('block')
-            ->maxLength('block', 10, __('Up to 10 characters only'))
-            ->allowEmptyString('block');
-
-        $validator
-            ->scalar('street')
-            ->maxLength('street', 100, __('Up to 100 characters only'))
-            ->allowEmptyString('street');
-
-        $validator
-            ->scalar('subdivision')
-            ->maxLength('subdivision', 100, __('Up to 100 characters only'))
-            ->allowEmptyString('subdivision');
-
-        $validator
-            ->scalar('city')
-            ->maxLength('city', 190, __('Up to 190 characters only'))
-            ->allowEmptyString('city');
-
-        $validator
-            ->scalar('province')
-            ->maxLength('province', 255, __('Up to 190 characters only'))
-            ->allowEmptyString('province');
-
-        $validator
-            ->requirePresence('country', 'create', __('Country is required'))
-            ->notEmptyString('country', __('Country is required'))
-            ->scalar('country')
-            ->maxLength('country', 90, __('Up to 90 characters only'));
-
-        $validator
-            ->requirePresence('zipcode', 'create', __('Zipcode is required'))
-            ->notEmptyString('zipcode', __('Zipcode is required'))
-            ->scalar('zipcode')
-            ->maxLength('zipcode', 18, __('Up to 18 characters only'));
-
-        $validator
             ->scalar('activation_key')
             ->maxLength('activation_key', 255)
             ->allowEmptyString('activation_key');
@@ -219,16 +183,22 @@ class UsersTable extends Table
      *  avatar_url as null
      * 
      * @param $data - User data object
-     * @return bool
+     * 
+     * @return \App\Model\Entity\User
+     * 
+     * @throws ValidationErrorsException - When there are invalid parameters
+     * @throws InternalErrorException - Db failed to save
      */
     public function addUser(array $data)
     {
-        $user = $this->newEntity($data);
+        $user = $this->newEntity($data, [
+            'associated' => ['Addresses' => ['validate' => true]]
+        ]);
         $errors = $user->getErrors();
         if ($errors) {
             throw new ValidationErrorsException($user);
         }
-        if ( ! $this->save($user)) {
+        if ( ! $this->save($user, ['associated' => ['Addresses']])) {
             throw new InternalErrorException();
         }
 
@@ -254,13 +224,117 @@ class UsersTable extends Table
             ->first();
 
         if ( ! $user) {
-            throw new UserNotFoundException(0);
+            throw new UserNotFoundException();
         }
         $user->is_activated = b'1';
         if ( ! $this->save($user)) {
             throw new InternalErrorException();
         }
         return true;
+    }
+
+    /**
+     * Fetches activated users by the given username
+     * 
+     * @param string $username - Username of the user
+     * 
+     * @return \Cake\ORM\Query
+     * 
+     * @throws \App\Exception\UserNotFoundException
+     */
+    public function fetchByUsername(string $username)
+    {
+        $query = $this->find()
+            ->where([
+                'username' => $username,
+                'is_activated' => true
+            ]);
+
+        if ($query->isEmpty()) {
+            throw new UserNotFoundException();
+        }
+
+        return $query;
+    }
+
+    /**
+     * The user containing
+     * follower count
+     * following count
+     * and basic user info
+     * 
+     * @param string $username - Username of the user
+     * 
+     * @return \App\Model\Entity\User
+     */
+    public function fetchUserProfile(string $username)
+    {
+        $user = $this->fetchByUsername($username);
+        $user = $this->commonFields($user);
+
+        return $user->first();
+    }
+
+    /**
+     * Toggles the follow a user
+     * 
+     * @param int $userId - users.id - The user to follow
+     * @param int $followingId - users.id - The user to be followed
+     * 
+     * @return \App\Model\Entity\Follower|null - Null if unfollowed else Entity
+     * 
+     * @throws \App\Exception\UserNotFoundException - If the following user is not found
+     * @throws \Cake\Http\Exception\InternalErrorException - DB Error
+     */
+    public function toggleFollowUser(int $userId, int $followingId)
+    {
+        if ( ! $this->exists(['id' => $followingId])) {
+            throw new UserNotFoundException();
+        }
+
+        $followEntity = $this->Following->fetchFollowing($userId, $followingId)->first();
+
+        if ($followEntity) {
+            // Delete if already followed
+            if ( ! $this->delete($followEntity)) {
+                throw new InternalErrorException();
+            }
+            return;
+        }
+
+        // Add new entity if not yet followed
+        $followEntity = $this->newEntity();
+        $followEntity->user_id = $userId;
+        $followEntity->following_id = $followingId;
+        if ( ! $this->save($followEntity)) {
+            throw new InternalErrorException();
+        }
+
+        return $followEntity;
+    }
+
+    /**
+     * Gets the common fields used
+     * id,
+     * username,
+     * avatar_url,
+     * first_name,
+     * last_name
+     * 
+     * @param \Cake\ORM\Query
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function commonFields(Query $query)
+    {
+        return $query->select([
+                'Users.id',
+                'Users.username',
+                'Users.first_name',
+                'Users.last_name',
+                'Users.avatar_url'
+            ]);
+
     }
 
     /**

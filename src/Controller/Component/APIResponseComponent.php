@@ -19,6 +19,9 @@ class APIResponseComponent extends Component
      * The main response handler
      * 
      * @param int @statusCode - The response http status code
+     * @param string $messageId - Unique Message id
+     * @param string $message - Message to include
+     * @param any $data - the data to include
      * 
      * @return \Cake\Controller\Controller|null Controller instance or null if not set.
      */
@@ -26,7 +29,7 @@ class APIResponseComponent extends Component
         int $statusCode,
         string $messageId = '',
         string $message = '',
-        array $data = []
+        $data = []
     )
     {
         $controller = $this->_registry->getController();
@@ -46,11 +49,11 @@ class APIResponseComponent extends Component
      * Status Code - 200
      * 
      * @param string $message - The message to include
-     * @param array $data - The data to include
+     * @param $data - The data to include
      * 
      * @return void
      */
-    public function responseOK(string $message = '', array $data = [])
+    public function responseOK(string $message = '', $data = [])
     {
         $this->jsonResponse(200, 'SUCCESS', $message, $data);
     }
@@ -58,11 +61,11 @@ class APIResponseComponent extends Component
     /**
      * Basic success response with data
      * 
-     * @param array $data - The data to include
+     * @param $data - The data to include
      * 
      * @return void
      */
-    public function responseData(array $data)
+    public function responseData($data)
     {
         $this->responseOk('', $data);
     }
@@ -70,11 +73,11 @@ class APIResponseComponent extends Component
     /**
      * The common response after the creation of an entity
      * 
-     * @param array $data - The entity
+     * @param $data - The entity
      * 
      * @return void
      */
-    public function responseCreated(array $data = [])
+    public function responseCreated($data = [])
     {
         $this->jsonResponse(201, '', 'SUCCESS', $data);
     }

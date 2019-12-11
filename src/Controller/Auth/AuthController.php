@@ -2,7 +2,6 @@
 namespace App\Controller\Auth;
 
 use App\Controller\AppController;
-use App\Exception\EmailNotSentException;
 use App\Exception\UserNotActivatedException;
 use App\Exception\UserNotFoundException;
 use App\Exception\UserUnauthorizedException;
@@ -28,7 +27,7 @@ class AuthController extends AppController
      * Logs in the current user and returns a Jwt Token upon success
      * Only allow activated accounts
      * 
-     * @return json - containing Jwt Token
+     * @return \Cake\Http\Response|null
      * 
      * @throws UserUnauthorizedException Provided Login Credentials is invalid
      * @throws UserNotActivatedException User is not yet activated based on the database
@@ -57,7 +56,11 @@ class AuthController extends AppController
      * Signs up a user,
      * Sends an activation email after a successful registration
      * 
-     * @return \App\Model\Entity\User
+     * @return \Cake\Http\Response|null
+     * 
+     * @throws \App\Exception\ValidationErrorsException - When Invalid Parameters
+     * @throws \App\Exception\EmailNotSentException - When email failed to send data
+     * @throws \Cake\Http\Exception\InternalErrorException - Db failed to save
      * 
      * @uses component - UserHandler
      * @uses component - HasherHandler
@@ -69,6 +72,9 @@ class AuthController extends AppController
         $this->loadComponent('UserHandler');
 
         $requestData = $this->request->getData();
+        // Need to have default value for address so that validator will check it
+        // Bug on validating association
+        $requestData['address'] = $this->request->getData('address', []);
         // Add activation_key for user
         $requestData['activation_key'] = $this->HasherHandler->generateRand();
 

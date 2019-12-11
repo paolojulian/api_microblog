@@ -22,9 +22,4 @@ class AppErrorRenderer extends BaseErrorRenderer
     {
         return $this->toJsonResponse($exception, 'TOKEN_EXPIRED', 401);
     }
-
-    public function unauthorized(UnauthorizedException $exception)
-    {
-        return $this->toJsonResponse($exception, 'USER_UNAUTHORIZED');
-    }
 }
