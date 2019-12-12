@@ -1,7 +1,9 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
+use App\Exception\PostNotFoundException;
+use App\Exception\ValidationErrorsException;
+use Cake\Http\Exception\InternalErrorException;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -40,6 +42,7 @@ class CommentsTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+        $this->addBehavior('Trimmer');
 
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
@@ -65,9 +68,9 @@ class CommentsTable extends Table
 
         $validator
             ->scalar('body')
-            ->maxLength('body', 140)
-            ->requirePresence('body', 'create')
-            ->notEmptyString('body');
+            ->maxLength('body', 140, __('Up to 140 characters only'))
+            ->requirePresence('body', true, __('Body is required'))
+            ->notEmptyString('body', __('Body is required'));
 
         $validator
             ->dateTime('deleted')
@@ -94,6 +97,38 @@ class CommentsTable extends Table
             }])
             ->where(['post_id' => $postId])
             ->order(['Comments.created' => 'DESC']);
+    }
+
+    /**
+     * Adds a comment to a post
+     * 
+     * @param int $postId - The post to be inserted with a comment
+     * @param array $data - Data to be inserted
+     * 
+     * @return App\Model\Entity\Comment
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function addComment(int $postId, array $data)
+    {
+        if ( ! $this->Posts->exists(['id' => $postId])) {
+            throw new PostNotFoundException($postId);
+        }
+
+        $comment = $this->newEntity($data);
+        $comment->post_id = $postId;
+
+        if ($comment->hasErrors()) {
+            throw new ValidationErrorsException($comment);
+        }
+
+        if ( ! $this->save($comment)) {
+            throw new InternalErrorException();
+        }
+
+        return $comment;
     }
 
     /**

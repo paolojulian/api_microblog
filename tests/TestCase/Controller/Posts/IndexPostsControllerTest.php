@@ -24,7 +24,5 @@ class IndexPostsControllerTest extends ApiTestCase
     {
         $this->get($this->url);
         $this->assertResponseCode(200);
-        $this->assertResponseContains('ForEditing');
-        $this->assertResponseContains('wont show this post onsearch');
     }
 }

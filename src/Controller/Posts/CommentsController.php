@@ -22,7 +22,7 @@ class CommentsController extends AppController
     
     /**
      * [GET]
-     * [PRIVATE ]
+     * [PRIVATE]
      * 
      * Fetches Comments of the given post id
      *
@@ -37,5 +37,28 @@ class CommentsController extends AppController
         }
         $comments = $this->paginate($this->Comments->fetchByPost($postId));
         $this->APIResponse->responseData($comments);
+    }
+
+    /**
+     * [POST]
+     * [PRIVATE]
+     * 
+     * Adds a comment to a post
+     *
+     * @return \Cake\Http\Response|null
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function add()
+    {
+        $this->request->allowMethod('post');
+        $postId = $this->request->getParam('id');
+        $requestData = $this->request->getData();
+        $requestData['user_id'] = $this->Auth->user('id');
+        $comment = $this->Comments->addComment($postId, $requestData);
+
+        return $this->APIResponse->responseCreated($comment);
     }
 }
