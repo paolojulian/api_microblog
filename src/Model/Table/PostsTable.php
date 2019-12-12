@@ -51,21 +51,18 @@ class PostsTable extends Table
         $this->belongsTo('RetweetPosts', [
             'foreignKey' => 'retweet_post_id',
             'className' => 'Posts',
-            'joinType' => 'INNER',
+            'propertyName' => 'original_post',
         ]);
 
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
-            'joinType' => 'INNER',
+            'joinType' => 'LEFT'
         ]);
         $this->hasMany('Comments', [
-            'foreignKey' => 'post_id',
+            'foreignKey' => 'post_id'
         ]);
         $this->hasMany('Likes', [
-            'foreignKey' => 'post_id',
-        ]);
-        $this->hasMany('Notifications', [
-            'foreignKey' => 'post_id',
+            'foreignKey' => 'post_id'
         ]);
     }
 
@@ -103,6 +100,159 @@ class PostsTable extends Table
 
         return $validator;
     }
+
+    public function validationShare(Validator $validator) {
+        $validator
+            ->scalar('body')
+            ->maxLength('body', 140, __('Up to 140 characters only'))
+            ->allowEmptyString('body');
+        return $validator;
+    }
+
+    /**
+     * Fetch owned posts along with posts of followed user
+     * that is not shared (means retweet_post_id IS NULL)
+     * 
+     * @param \Cake\ORM\Query $followedUsersQuery
+     * @param int $userId
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function fetchOriginalPostsForUser(Query $followedUsersQuery, int $userId)
+    {
+        return $this->find()
+            ->where([
+                'Posts.retweet_post_id IS NULL',
+                'OR' => [
+                    'Posts.user_id IN' => $followedUsersQuery,
+                    'Posts.user_id' => $userId
+                ]
+            ])
+            ->contain([
+                'RetweetPosts',
+                'Users' => function ($q) {
+                    return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                }
+            ]);
+    }
+
+    /**
+     * Fetch owned posts along with posts of followed user
+     * that is shared (meaning retweet_post_id IS NOT NULL)
+     * 
+     * @param \Cake\ORM\Query $followedUsersQuery
+     * @param int $userId
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function fetchSharedPostsForUser(Query $followedUsersQuery, int $userId)
+    {
+        return $this->find()
+            ->where([
+                'Posts.retweet_post_id IS NOT NULL',
+                'OR' => [
+                    'Posts.user_id IN' => $followedUsersQuery,
+                    'Posts.user_id' => $userId
+                ]
+            ])
+            ->contain([
+                'RetweetPosts' => function ($q) {
+                    return $q->contain(['Users' => function ($q) {
+                        return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                    }]);
+                },
+                'Users' => function ($q) {
+                    return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                }
+            ]);
+    }
+
+    /**
+     * Fetches all posts that will be displayed in the landing page
+     * 
+     * TODO take unique posts and check for followed users who took
+     * 
+     * @param int $userId
+     * @param int $page
+     * @param int $perPage
+     * 
+     * @return array of \App\Model\Entity\Post
+     */
+    public function fetchPostsOfUser(int $userId, int $page = 1, int $perPage = 5)
+    {
+        return $this->find()
+            ->where([
+                'Posts.user_id' => $userId
+            ])
+            ->contain([
+                'RetweetPosts' => function ($q) {
+                    return $q->contain(['Users' => function ($q) {
+                        return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                    }]);
+                },
+                'Users' => function ($q) {
+                    return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                }
+            ])
+            ->order(['Posts__created' => 'desc'])
+            ->limit($perPage)
+            ->page($page);
+    }
+
+    /**
+     * Fetches all posts that will be displayed in the landing page
+     * 
+     * TODO take unique posts and check for followed users who took
+     * 
+     * @param int $userId
+     * @param int $page
+     * @param int $perPage
+     * 
+     * @return array of \App\Model\Entity\Post
+     */
+    public function fetchPostsForLanding(int $userId, int $page = 1, int $perPage = 5)
+    {
+        $followedUsersQuery = $this->Users->Followers->fetchFollowedUsers($userId);
+        return $this->find()
+            ->where([
+                'OR' => [
+                    'Posts.user_id IN' => $followedUsersQuery,
+                    'Posts.user_id' => $userId
+                ]
+            ])
+            ->contain([
+                'RetweetPosts' => function ($q) {
+                    return $q->contain(['Users' => function ($q) {
+                        return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                    }]);
+                },
+                'Users' => function ($q) {
+                    return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                }
+            ])
+            ->order(['Posts__created' => 'desc'])
+            ->limit($perPage)
+            ->page($page);
+    }
+    // public function fetchPostsForLanding(int $userId, int $page = 1, int $perPage = 5)
+    // {
+    //     $followedUsersQuery = $this->Users->Followers->fetchFollowedUsers($userId);
+    //     $sharedPosts = $this->fetchSharedPostsForUser($followedUsersQuery, $userId)
+    //         ->group(['Posts.retweet_post_id']);
+
+    //     $originalPosts = $this->fetchOriginalPostsForUser($followedUsersQuery, $userId);
+        
+    //     // Reason for union is i am planning to group retweet_posts
+    //     $unionQuery = $sharedPosts->union($originalPosts);
+
+    //     return $unionQuery->epilog(
+    //         $this->connection()
+    //             ->newQuery()
+    //             ->order(['Posts__created' => 'desc'])
+    //             ->limit($perPage)
+    //             ->page($page)
+    //     );
+    // }
 
     /**
      * Adds a post entity to the database
@@ -151,6 +301,67 @@ class PostsTable extends Table
             'fields' => ['title', 'body', 'img_path', 'user_id']
         ]);
         
+        if ($post->hasErrors()) {
+            throw new ValidationErrorsException($post);
+        }
+
+        if ( ! $this->save($post)) {
+            throw new InternalErrorException();
+        }
+
+        return $post;
+    }
+
+    /**
+     * Deletes a post from the database
+     * 
+     * @param integer $postId - posts.id - Post to be deleted
+     * 
+     * @return bool
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function deletePost(int $postId)
+    {
+        $post = $this->get($postId);
+
+        if ( ! $post) {
+            throw new PostNotFoundException($postId);
+        }
+
+        if ( ! $this->delete($post)) {
+            throw new InternalErrorException();
+        }
+
+        return true;
+    }
+
+    /**
+     * Shares a Post
+     * 
+     * @param int $postId - the post to be shared
+     * @param array $data - The request Data
+     * 
+     * @return array - status and Post Enitity
+     * 
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function sharePost(int $postId, array $data)
+    {
+        if ( ! $this->exists(['id' => $postId])) {
+            throw new PostNotFoundException($postId);
+        }
+
+        $post = $this->newEntity($data, [
+            'fields' => ['title', 'body', 'img_path', 'user_id', 'retweet_post_id'],
+            'validate' => 'Share'
+        ]);
+
+        $post->retweet_post_id = $postId;
+
         if ($post->hasErrors()) {
             throw new ValidationErrorsException($post);
         }

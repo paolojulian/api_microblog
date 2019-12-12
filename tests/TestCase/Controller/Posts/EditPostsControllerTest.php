@@ -94,4 +94,26 @@ class EditPostsControllerTest extends ApiTestCase
         $this->assertResponseCode(200);
         $this->assertResponseNotContains(133);
     }
+
+    public function testINVALIDcannotEditNotOwnedPost()
+    {
+        $postId = 11;
+        $data = [
+            'title' => 'This is a title',
+            'body' => 'This is a body'
+        ];
+        $this->put("/posts/$postId", $data);
+        $this->assertResponseCode(403);
+    }
+
+    public function testINVALIDcannotEditNotFoundPost()
+    {
+        $postId = 9321;
+        $data = [
+            'title' => 'This is a title',
+            'body' => 'This is a body'
+        ];
+        $this->put("/posts/$postId", $data);
+        $this->assertResponseCode(403);
+    }
 }

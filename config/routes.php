@@ -72,6 +72,11 @@ $apiRoutes = function (RouteBuilder $routes) {
         )->setMethods(['POST']);
 
         $routes->connect(
+            '/:username/posts',
+            ['controller' => 'Users', 'action' => 'fetchPosts']
+        )->setMethods(['GET']);
+
+        $routes->connect(
             '/image',
             ['controller' => 'Users', 'action' => 'updateImage']
         )->setMethods(['PATCH']);

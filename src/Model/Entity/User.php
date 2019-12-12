@@ -74,6 +74,11 @@ class User extends Entity
         'password',
     ];
 
+    protected function _getFullName()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
     protected function _setPassword($password)
     {
         if (strlen($password) > 0) {

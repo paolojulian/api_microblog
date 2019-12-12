@@ -11,6 +11,38 @@ use App\Controller\AppController;
  */
 class PostsController extends AppController
 {
+    public function isAuthorized()
+    {
+        if ( ! in_array($this->request->getParam('action'), ['delete', 'edit'])) {
+            return true;
+        }
+
+        if ( ! parent::isOwnedBy($this->Posts, $this->Auth->user('id'))) {
+            return false;
+        }
+
+        return parent::isAuthorized();
+    }
+
+    /**
+     * [GET]
+     * [PRIVATE]
+     * 
+     * Fetches data for home page
+     * 
+     * @return \Cake\Http\Response
+     */
+    public function index()
+    {
+        $this->request->allowMethod('get');
+        $page = $this->request->getQuery('page', 1);
+        $userId = $this->Auth->user('id');
+        $posts = $this->Posts->fetchPostsForLanding($userId, $page);
+
+        return $this->APIResponse->responseData($posts);
+    }
+
+
     /**
      * [POST]
      * [PRIVATE]
@@ -37,9 +69,10 @@ class PostsController extends AppController
     }
 
     /**
-     * [PUT]
+     * [PUT, POST]
      * [PRIVATE]
      * 
+     * TODO investigate put cannot get data from multipart-formdata 
      * Edits a post entity
      * Set img_path to empty if you want to clear img
      * 
@@ -52,7 +85,6 @@ class PostsController extends AppController
      */
     public function edit()
     {
-        // TODO investigate put cannot get data from multipart-formdata
         $this->request->allowMethod(['post', 'put']);
         $this->loadComponent('PostHandler');
         $postId = (int) $this->request->getParam('id');
@@ -65,5 +97,48 @@ class PostsController extends AppController
         }
         $post = $this->Posts->updatePost($postId, $requestData);
         return $this->APIResponse->responseData($post);
+    }
+
+    /**
+     * [DELETE]
+     * [PRIVATE]
+     * 
+     * Deletes a Post
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     * 
+     * @return status 204
+     */
+    public function delete()
+    {
+        $this->request->allowMethod('delete');
+        $this->Posts->deletePost((int)$this->request->getParam('id'));
+        return $this->APIResponse->responseOk();
+    }
+
+    /**
+     * [POST]
+     * [PRIVATE]
+     * 
+     * Shares a post
+     * 
+     * @return object - Post Entity
+     * 
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function share()
+    {
+        $this->request->allowMethod('post');
+        $postId = (int)$this->request->getParam('id');
+        $requestData = $this->request->getData();
+        $requestData['user_id'] = (int)$this->Auth->user('id');
+
+        // Save data
+        $post = $this->Posts->sharePost($postId, $requestData);
+
+        return $this->APIResponse->responseCreated($post);
     }
 }

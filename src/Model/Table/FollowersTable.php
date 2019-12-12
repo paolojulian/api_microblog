@@ -71,6 +71,8 @@ class FollowersTable extends Table
     }
 
     /**
+     * Fetches the Details
+     * 
      * @param int $userId - users.id - The user to follow
      * @param int $followingId - users.id - The user to be followed
      * 
@@ -83,6 +85,20 @@ class FollowersTable extends Table
                 'following_id' => $followingId,
                 'user_id' => $userId
             ]);
+    }
+
+    /**
+     * Fetches the users being followed by the given user
+     * 
+     * @param int $userId - users.id - The user to follow
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function fetchFollowedUsers(int $userId)
+    {
+        return $this->find()
+            ->select(['Followers.following_id'])
+            ->where(['Followers.user_id' => $userId]);
     }
 
     /**

@@ -53,6 +53,7 @@ class UsersTable extends Table
         ]);
         $this->hasMany('Followers', [
             'foreignKey' => 'following_id',
+            'className' => 'Followers'
         ]);
         $this->hasMany('Following', [
             'foreignKey' => 'user_id',

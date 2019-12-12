@@ -53,4 +53,27 @@ class UsersController extends AppController
         $user = $this->Users->fetchUserProfile($username);
         $this->APIResponse->responseData($user);
     }
+
+
+    /**
+     * [GET]
+     * [PRIVATE]
+     * 
+     * Fetches posts of given user
+     * 
+     * @return \Cake\Http\Response
+     */
+    public function fetchPosts()
+    {
+        $this->request->allowMethod('get');
+        $page = $this->request->getQuery('page', 1);
+        $username = $this->request->getParam('username');
+        $userId = $this->Users->fetchByUsername($username)
+            ->select(['id'])
+            ->first()
+            ->id;
+        $posts = $this->Users->Posts->fetchPostsOfUser($userId, $page);
+
+        return $this->APIResponse->responseData($posts);
+    }
 }

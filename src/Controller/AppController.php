@@ -15,6 +15,7 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
+use Cake\ORM\Table;
 
 /**
  * Application Controller
@@ -80,5 +81,30 @@ class AppController extends Controller
     public function isAuthorized()
     {
         return true;
+    }
+
+    /**
+     * Check if model is owned by user passed
+     * !!IMPORTANT
+     * table should have user_id as column name
+     * for its owner
+     * 
+     * TODO
+     * make it dynamic for any field_name
+     * 
+     * @param \Cake\ORM\Table $model - The table to check if the data belongs to the user passed
+     * @param int $userId - The user who is trying to access an entity
+     * @param string $paramKey - The param in url /posts/:id
+     * 
+     * @return bool
+     */
+    public function isOwnedBy(Table $model, int $userId, string $paramKey = 'id')
+    {
+        $reqId = (int) $this->request->getParam($paramKey);
+        if (method_exists($model, 'isOwnedBy')) {
+            return $model->isOwnedBy($reqId, $userId);
+        } else {
+            return $model->exists(['id' => $reqId, 'user_id' => $userId]);
+        }
     }
 }
