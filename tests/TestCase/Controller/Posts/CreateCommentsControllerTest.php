@@ -69,7 +69,15 @@ class CreateCommentsControllerTest extends ApiTestCase
         $this->assertResponseContains('Up to 140 characters only');
     }
 
-    public function testValidPost()
+    public function testInvalidNonExistingPostWillReturn404()
+    {
+        $data = ['body' => 'This is a comment'];
+        $postId = 1232131;
+        $this->post($this->url($postId), $data);
+        $this->assertResponseCode(404);
+    }
+
+    public function testValidComment()
     {
         $data = ['body' => 'This is a comment'];
         $postId = 1;
