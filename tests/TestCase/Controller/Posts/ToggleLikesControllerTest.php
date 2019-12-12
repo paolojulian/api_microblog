@@ -9,7 +9,7 @@ use Cake\TestSuite\IntegrationTestTrait;
  *
  * @uses \App\Controller\Likes\LikesController
  */
-class LikesControllerTest extends ApiTestCase
+class ToggleLikesControllerTest extends ApiTestCase
 {
     use IntegrationTestTrait;
 

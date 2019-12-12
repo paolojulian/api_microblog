@@ -142,27 +142,4 @@ class PostsController extends AppController
 
         return $this->APIResponse->responseCreated($post);
     }
-
-    /**
-     * [POST]
-     * [PRIVATE]
-     * 
-     * Toggle likes a Post
-     * 
-     * @return int - number of likes of the post
-     * 
-     * @throws \App\Exception\PostNotFoundException
-     */
-    public function like()
-    {
-        $this->request->allowMethod('post');
-        $postId = (int) $this->request->getParam('id');
-        $userId = (int) $this->Auth->user('id');
-        if ( ! $this->Posts->exists(['id' => $postId])) {
-            throw new PostNotFoundException($postId);
-        }
-        $this->Posts->Likes->toggleLike($userId, $postId);
-
-        return $this->APIResponse->responseOk();
-    }
 }

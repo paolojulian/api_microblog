@@ -77,6 +77,26 @@ class CommentsTable extends Table
     }
 
     /**
+     * Fetches comments of the given post
+     * 
+     * @param int $postId - posts.id
+     * @param int $page - page
+     * @param int $perPage
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function fetchByPost(int $postId)
+    {
+        return $this->find()
+            ->select(['Comments.id', 'Comments.body', 'Comments.created'])
+            ->contain(['Users' => function ($q) {
+                return $q->select(['id', 'first_name', 'last_name', 'username', 'avatar_url']);
+            }])
+            ->where(['post_id' => $postId])
+            ->order(['Comments.created' => 'DESC']);
+    }
+
+    /**
      * Returns a rules checker object that will be used for validating
      * application integrity.
      *
