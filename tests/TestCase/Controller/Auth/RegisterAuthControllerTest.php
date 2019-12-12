@@ -197,4 +197,32 @@ class RegisterAuthsControllerTest extends ApiTestCase
         $this->assertResponseContains('address');
         $this->assertResponseContains('country');
     }
+
+    public function testVALIDuserWithReadOnlyFieldWillNotAddField()
+    {
+        $data = [
+            'username' => 'newuserfortest',
+            'email' => 'newuserfortest@gmail.com',
+            'mobile' => '09279488654',
+            'first_name' => 'Paolo Vincent',
+            'last_name' => 'Julian',
+            'birthdate' => '1994-07-30',
+            'password' => 'qwe123',
+            'confirm_password' => 'qwe123',
+            'address' => [
+                'lot' => '18B',
+                'block' => '',
+                'street' => 'Dagsian',
+                'province' => 'Benguet',
+                'city' => 'Baguio',
+                'country' => 'Philippines',
+                'zipcode' => '2600',
+            ],
+
+            'is_activated' => 1
+        ];
+        $this->post('/auth/register', $data);
+        $this->assertResponseCode(201);
+        $this->assertResponseNotContains('is_activated');
+    }
 }

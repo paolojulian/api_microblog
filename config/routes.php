@@ -33,9 +33,10 @@ Router::defaultRouteClass(DashedRoute::class);
 //  * 
 //  * @return void
 //  */
+Router::extensions(['json']);
 $apiRoutes = function (RouteBuilder $routes) {
 
-    $routes->setExtensions(['json']);
+    $routes->setExtensions(['json', 'xml']);
 
     $routes->prefix('auth', function (RouteBuilder $routes) {
         $routes->connect(
@@ -76,10 +77,7 @@ $apiRoutes = function (RouteBuilder $routes) {
         )->setMethods(['PATCH']);
     });
 
-    // users
-
-    // search
-    $searchRoutes = function (RouteBuilder $routes) {
+    $routes->prefix('search', function (RouteBuilder $routes) {
         $routes->connect(
             '/',
             ['controller' => 'Search', 'action' => 'index']
@@ -94,9 +92,8 @@ $apiRoutes = function (RouteBuilder $routes) {
             '/posts',
             ['controller' => 'Search', 'action' => 'posts']
         )->setMethods(['GET']);
-    };
+    });
 
-    // posts
     $routes->prefix('posts', function (RouteBuilder $routes) {
         $routes->connect(
             '/',
@@ -118,7 +115,7 @@ $apiRoutes = function (RouteBuilder $routes) {
             ['controller' => 'Posts', 'action' => 'edit']
         )
         ->setPatterns(['id' => '\d+'])
-        ->setMethods(['PUT']);
+        ->setMethods(['PUT', 'POST']);
 
         $routes->connect(
             '/:id',
@@ -175,8 +172,6 @@ $apiRoutes = function (RouteBuilder $routes) {
         ])
         ->setMethods(['PUT']);
     });
-
-    $routes->prefix('search', $searchRoutes);
 
     $routes->fallbacks(DashedRoute::class);
 };

@@ -8,35 +8,7 @@ use Cake\TestSuite\Fixture\TestFixture;
  */
 class PostsFixture extends TestFixture
 {
-    /**
-     * Fields
-     *
-     * @var array
-     */
-    // @codingStandardsIgnoreStart
-    public $fields = [
-        'id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'autoIncrement' => true, 'precision' => null],
-        'title' => ['type' => 'string', 'length' => 30, 'null' => false, 'default' => '', 'collate' => 'utf8_general_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
-        'body' => ['type' => 'string', 'length' => 30, 'null' => false, 'default' => null, 'collate' => 'utf8_general_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
-        'img_path' => ['type' => 'string', 'length' => 255, 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'comment' => '', 'precision' => null, 'fixed' => null],
-        'retweet_post_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'user_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
-        'created' => ['type' => 'timestamp', 'length' => null, 'null' => true, 'default' => 'current_timestamp()', 'comment' => '', 'precision' => null],
-        'modified' => ['type' => 'timestamp', 'length' => null, 'null' => true, 'default' => 'current_timestamp()', 'comment' => '', 'precision' => null],
-        'deleted' => ['type' => 'timestamp', 'length' => null, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null],
-        '_indexes' => [
-            'user_id' => ['type' => 'index', 'columns' => ['user_id'], 'length' => []],
-        ],
-        '_constraints' => [
-            'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
-            'posts_ibfk_1' => ['type' => 'foreign', 'columns' => ['user_id'], 'references' => ['users', 'id'], 'update' => 'noAction', 'delete' => 'cascade', 'length' => []],
-        ],
-        '_options' => [
-            'engine' => 'InnoDB',
-            'collation' => 'utf8_general_ci'
-        ],
-    ];
-    // @codingStandardsIgnoreEnd
+    public $import = ['table' => 'posts'];
     /**
      * Init method
      *
@@ -47,14 +19,113 @@ class PostsFixture extends TestFixture
         $this->records = [
             [
                 'id' => 1,
-                'title' => 'Lorem ipsum dolor sit amet',
-                'body' => 'Lorem ipsum dolor sit amet',
-                'img_path' => 'Lorem ipsum dolor sit amet',
+                'title' => '20002 Post',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 200002,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 2,
+                'title' => '20002 Post',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 3,
+                'title' => '20002 Post',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 200012,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 4,
+                'title' => '',
+                'body' => 'This is a shared post',
                 'retweet_post_id' => 1,
-                'user_id' => 1,
-                'created' => 1576055273,
-                'modified' => 1576055273,
-                'deleted' => 1576055273,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 5,
+                'title' => 'Test',
+                'body' => 'For Searching',
+                'retweet_post_id' => null,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 6,
+                'title' => 'Test',
+                'body' => 'For Searching 2',
+                'retweet_post_id' => null,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-23 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 7,
+                'title' => 'Title Search',
+                'body' => 'Haha!',
+                'retweet_post_id' => null,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-24 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 8,
+                'title' => '',
+                'body' => 'wont show this post onsearch',
+                'retweet_post_id' => 7,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-24 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 9,
+                'title' => '',
+                'body' => 'wont show this post onsearch',
+                'retweet_post_id' => '',
+                'user_id' => 200002,
+                'img_path' => null,
+                'created' => '2019-11-24 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 10,
+                'title' => 'ForEditing',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 200001,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
             ],
         ];
         parent::init();

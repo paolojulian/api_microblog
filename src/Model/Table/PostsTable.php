@@ -1,6 +1,9 @@
 <?php
 namespace App\Model\Table;
 
+use App\Exception\PostNotFoundException;
+use App\Exception\ValidationErrorsException;
+use Cake\Http\Exception\InternalErrorException;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -43,11 +46,14 @@ class PostsTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+        $this->addBehavior('Trimmer');
 
         $this->belongsTo('RetweetPosts', [
             'foreignKey' => 'retweet_post_id',
+            'className' => 'Posts',
             'joinType' => 'INNER',
         ]);
+
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
             'joinType' => 'INNER',
@@ -76,15 +82,15 @@ class PostsTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->scalar('title')
-            ->maxLength('title', 30)
-            ->notEmptyString('title');
+            ->scalar('title', __('Title should be scalar'))
+            ->maxLength('title', 30, __('Up to 30 characters only'))
+            ->allowEmptyString('title');
 
         $validator
-            ->scalar('body')
-            ->maxLength('body', 30)
-            ->requirePresence('body', 'create')
-            ->notEmptyString('body');
+            ->scalar('body', __('Body should be scalar'))
+            ->maxLength('body', 140, __('Up to 140 characters only'))
+            ->requirePresence('body', true, __('Body is required'))
+            ->notEmptyString('body', __('Body is required'));
 
         $validator
             ->scalar('img_path')
@@ -96,6 +102,64 @@ class PostsTable extends Table
             ->allowEmptyDateTime('deleted');
 
         return $validator;
+    }
+
+    /**
+     * Adds a post entity to the database
+     * 
+     * @param array $data - requestData
+     * 
+     * @return \App\Model\Entity\Post
+     * 
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException - Did not save to db
+     */
+    public function addPost(array $data)
+    {
+        $post = $this->newEntity($data, [
+            'fields' => ['title', 'body', 'img_path', 'user_id']
+        ]);
+        if ($post->hasErrors()) {
+            throw new ValidationErrorsException($post);
+        }
+        if ( ! $this->save($post)) {
+            throw new InternalErrorException();
+        }
+        return $post;
+    }
+
+    /**
+     * Updates a post
+     * 
+     * @param integer $postId - posts.id - Post to be updated
+     * @param array $data - Post Entity
+     * 
+     * @return array - status and Post Enitity
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function updatePost(int $postId, array $data)
+    {
+        $post = $this->get($postId);
+        if ( ! $post) {
+            throw new PostNotFoundException($postId);
+        }
+
+        $this->patchEntity($post, $data, [
+            'fields' => ['title', 'body', 'img_path', 'user_id']
+        ]);
+        
+        if ($post->hasErrors()) {
+            throw new ValidationErrorsException($post);
+        }
+
+        if ( ! $this->save($post)) {
+            throw new InternalErrorException();
+        }
+
+        return $post;
     }
 
     /**

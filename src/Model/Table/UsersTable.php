@@ -192,10 +192,19 @@ class UsersTable extends Table
     public function addUser(array $data)
     {
         $user = $this->newEntity($data, [
+            'fields' => [
+                'username',
+                'email',
+                'mobile',
+                'first_name',
+                'last_name',
+                'birthdate',
+                'password',
+                'address',
+            ],
             'associated' => ['Addresses' => ['validate' => true]]
         ]);
-        $errors = $user->getErrors();
-        if ($errors) {
+        if ($user->hasErrors()) {
             throw new ValidationErrorsException($user);
         }
         if ( ! $this->save($user, ['associated' => ['Addresses']])) {
