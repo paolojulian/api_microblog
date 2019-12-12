@@ -72,7 +72,7 @@ class UsersController extends AppController
             ->select(['id'])
             ->first()
             ->id;
-        $posts = $this->Users->Posts->fetchPostsOfUser($userId, $page);
+        $posts = $this->Users->fetchPosts($userId, $page);
 
         return $this->APIResponse->responseData($posts);
     }

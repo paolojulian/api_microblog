@@ -324,6 +324,38 @@ class UsersTable extends Table
     }
 
     /**
+     * Fetches all posts that will be displayed in the landing page
+     * 
+     * TODO take unique posts and check for followed users who took
+     * 
+     * @param int $userId
+     * @param int $page
+     * @param int $perPage
+     * 
+     * @return array of \App\Model\Entity\Post
+     */
+    public function fetchPosts(int $userId, int $page = 1, int $perPage = 5)
+    {
+        return $this->find()
+            ->select(['id', 'username', 'first_name', 'last_name', 'avatar_url'])
+            ->where(['id' => $userId])
+            ->contain([
+                'Posts' => function ($q) use ($page, $perPage) {
+                    return $q->contain([
+                        'RetweetPosts' => function ($q) {
+                            return $q->contain(['Users' => function ($q) {
+                                return $q->select(['id', 'username', 'first_name', 'last_name', 'avatar_url']);
+                            }]);
+                        }
+                    ])
+                    ->order(['Posts__created' => 'desc'])
+                    ->limit($perPage)
+                    ->page($page);
+                }
+            ]);
+    }
+
+    /**
      * Gets the common fields used
      * id,
      * username,
