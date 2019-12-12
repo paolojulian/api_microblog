@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Table;
 
+use App\Exception\CommentNotFoundException;
 use App\Exception\PostNotFoundException;
 use App\Exception\ValidationErrorsException;
 use Cake\Http\Exception\InternalErrorException;
@@ -100,6 +101,21 @@ class CommentsTable extends Table
     }
 
     /**
+     * Returns a rules checker object that will be used for validating
+     * application integrity.
+     *
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
+     */
+    public function buildRules(RulesChecker $rules)
+    {
+        $rules->add($rules->existsIn(['user_id'], 'Users'));
+        $rules->add($rules->existsIn(['post_id'], 'Posts'));
+
+        return $rules;
+    }
+
+    /**
      * Adds a comment to a post
      * 
      * @param int $postId - The post to be inserted with a comment
@@ -111,14 +127,9 @@ class CommentsTable extends Table
      * @throws \App\Exception\ValidationErrorsException
      * @throws \Cake\Http\Exception\InternalErrorException
      */
-    public function addComment(int $postId, array $data)
+    public function addComment(array $data)
     {
-        if ( ! $this->Posts->exists(['id' => $postId])) {
-            throw new PostNotFoundException($postId);
-        }
-
         $comment = $this->newEntity($data);
-        $comment->post_id = $postId;
 
         if ($comment->hasErrors()) {
             throw new ValidationErrorsException($comment);
@@ -132,17 +143,52 @@ class CommentsTable extends Table
     }
 
     /**
-     * Returns a rules checker object that will be used for validating
-     * application integrity.
-     *
-     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
-     * @return \Cake\ORM\RulesChecker
+     * Adds a comment to a post
+     * 
+     * @param int $postId - The post to be inserted with a comment
+     * @param array $data - Data to be inserted
+     * 
+     * @return App\Model\Entity\Comment
+     * 
+     * @throws \App\Exception\CommentNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
      */
-    public function buildRules(RulesChecker $rules)
+    public function editComment(int $commentId, array $data)
     {
-        $rules->add($rules->existsIn(['user_id'], 'Users'));
-        $rules->add($rules->existsIn(['post_id'], 'Posts'));
+        $this->isExistOrThrow($commentId);
 
-        return $rules;
+        $comment = $this->get($commentId);
+        $comment = $this->patchEntity($comment, $data, [
+            'fields' => ['body']
+        ]);
+
+        if ($comment->hasErrors()) {
+            throw new ValidationErrorsException($comment);
+        }
+
+        if ( ! $this->save($comment)) {
+            throw new InternalErrorException();
+        }
+
+        return $comment;
+    }
+
+    /**
+     * Check if post exists else it will throw not found
+     * 
+     * @param int $commentId - comments.id to be checked
+     * 
+     * @return bool
+     * 
+     * @throws \App\Exception\CommentNotFoundException
+     */
+    public function isExistOrThrow(int $commentId)
+    {
+        if ( ! $this->exists(['id' => $commentId])) {
+            throw new CommentNotFoundException($commentId);
+        }
+
+        return true;
     }
 }

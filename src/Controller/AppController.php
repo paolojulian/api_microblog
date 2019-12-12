@@ -15,6 +15,7 @@
 namespace App\Controller;
 
 use Cake\Controller\Controller;
+use Cake\Http\Exception\NotFoundException;
 use Cake\ORM\Table;
 
 /**
@@ -103,8 +104,13 @@ class AppController extends Controller
         $reqId = (int) $this->request->getParam($paramKey);
         if (method_exists($model, 'isOwnedBy')) {
             return $model->isOwnedBy($reqId, $userId);
-        } else {
+        }
+        if ($model->exists(['id' => $reqId])) {
             return $model->exists(['id' => $reqId, 'user_id' => $userId]);
         }
+        if (method_exists($model, 'isExistOrThrow')) {
+            return $model->isExistOrThrow($reqId);
+        }
+        return true;
     }
 }

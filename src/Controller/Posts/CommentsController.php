@@ -19,6 +19,19 @@ class CommentsController extends AppController
             'Posts.created' => 'desc'
         ]
     ];
+
+    public function isAuthorized()
+    {
+        if ( ! in_array($this->request->getParam('action'), ['delete', 'edit'])) {
+            return true;
+        }
+
+        if ( ! parent::isOwnedBy($this->Comments, $this->Auth->user('id'), 'commentId')) {
+            return false;
+        }
+
+        return parent::isAuthorized();
+    }
     
     /**
      * [GET]
@@ -55,9 +68,41 @@ class CommentsController extends AppController
     {
         $this->request->allowMethod('post');
         $postId = $this->request->getParam('id');
+        $this->Comments->Posts->isExistOrThrow($postId);
+
         $requestData = $this->request->getData();
         $requestData['user_id'] = $this->Auth->user('id');
-        $comment = $this->Comments->addComment($postId, $requestData);
+        $requestData['post_id'] = $postId;
+
+        $comment = $this->Comments->addComment($requestData);
+
+        return $this->APIResponse->responseCreated($comment);
+    }
+
+    /**
+     * [PUT]
+     * [PRIVATE]
+     * 
+     * Edits a comment to a post
+     *
+     * @return \Cake\Http\Response|null
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \App\Exception\CommentNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function edit()
+    {
+        $this->request->allowMethod('put');
+        $postId = $this->request->getParam('id');
+        $this->Comments->Posts->isExistOrThrow($postId);
+        $commentId = $this->request->getParam('commentId');
+
+        $requestData = $this->request->getData();
+        $requestData['post_id'] = $postId;
+
+        $comment = $this->Comments->editComment($commentId, $requestData);
 
         return $this->APIResponse->responseCreated($comment);
     }

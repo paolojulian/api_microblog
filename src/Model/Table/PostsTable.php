@@ -110,6 +110,21 @@ class PostsTable extends Table
     }
 
     /**
+     * Returns a rules checker object that will be used for validating
+     * application integrity.
+     *
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
+     */
+    public function buildRules(RulesChecker $rules)
+    {
+        $rules->add($rules->existsIn(['retweet_post_id'], 'RetweetPosts'));
+        $rules->add($rules->existsIn(['user_id'], 'Users'));
+
+        return $rules;
+    }
+
+    /**
      * Fetch owned posts along with posts of followed user
      * that is not shared (means retweet_post_id IS NULL)
      * 
@@ -374,17 +389,20 @@ class PostsTable extends Table
     }
 
     /**
-     * Returns a rules checker object that will be used for validating
-     * application integrity.
-     *
-     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
-     * @return \Cake\ORM\RulesChecker
+     * Check if post exists else it will throw not found
+     * 
+     * @param int $postId - posts.id to be checked
+     * 
+     * @return bool
+     * 
+     * @throws \App\Exception\PostNotFoundException
      */
-    public function buildRules(RulesChecker $rules)
+    public function isExistOrThrow(int $postId)
     {
-        $rules->add($rules->existsIn(['retweet_post_id'], 'RetweetPosts'));
-        $rules->add($rules->existsIn(['user_id'], 'Users'));
+        if ( ! $this->exists(['id' => $postId])) {
+            throw new PostNotFoundException($postId);
+        }
 
-        return $rules;
+        return true;
     }
 }
