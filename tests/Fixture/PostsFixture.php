@@ -138,6 +138,28 @@ class PostsFixture extends TestFixture
                 'modified' => '2019-11-22 09:35:10',
                 'deleted' => null
             ],
+            [
+                'id' => 12,
+                'title' => 'NotLiked',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 200002,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
+            [
+                'id' => 13,
+                'title' => 'Liked',
+                'body' => 'Lorem Ipsum',
+                'retweet_post_id' => null,
+                'user_id' => 20002,
+                'img_path' => null,
+                'created' => '2019-11-22 09:35:10',
+                'modified' => '2019-11-22 09:35:10',
+                'deleted' => null
+            ],
         ];
         parent::init();
     }

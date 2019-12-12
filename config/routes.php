@@ -138,7 +138,7 @@ $apiRoutes = function (RouteBuilder $routes) {
 
         $routes->connect(
             '/:id/likes',
-            ['controller' => 'Likes', 'action' => 'add']
+            ['controller' => 'Posts', 'action' => 'like']
         )
         ->setPatterns(['id' => '\d+'])
         ->setMethods(['POST']);

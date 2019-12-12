@@ -1,7 +1,7 @@
 <?php
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
+use Cake\Http\Exception\InternalErrorException;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -83,5 +83,52 @@ class LikesTable extends Table
         $rules->add($rules->existsIn(['post_id'], 'Posts'));
 
         return $rules;
+    }
+
+    /**
+     * Fetch the liked post
+     * 
+     * @param int $userId - users.id - user that liked the post
+     * @param int $postId - posts.id - post that was liked
+     * 
+     * @return \Cake\ORM\Query
+     */
+    public function fetchLiked(int $userId, int $postId)
+    {
+        return $this->find()
+            ->where([
+                'post_id' => $postId,
+                'user_id' => $userId
+            ]);
+    }
+
+    /**
+     * Toggles like of a post
+     * 
+     * @param int $userId - users.id - user that liked/unliked the post
+     * @param int $postId - posts.id - post that was liked/unliked
+     * 
+     * @return \App\Model\Entity\Like|null - Null if unliked the post else liked
+     * 
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function toggleLike(int $userId, int $postId)
+    {
+        $like = $this->fetchLiked($userId, $postId)->first();
+
+        if ($like) {
+            if ( ! $this->delete($like)) {
+                throw new InternalErrorException();
+            }
+            return;
+        }
+
+        $like = $this->newEntity();
+        $like->user_id = $userId;
+        $like->post_id = $postId;
+        if ( ! $this->save($like)) {
+            throw new InternalErrorException();
+        }
+        return $like;
     }
 }

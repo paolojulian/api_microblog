@@ -2,6 +2,7 @@
 namespace App\Controller\Posts;
 
 use App\Controller\AppController;
+use App\Exception\PostNotFoundException;
 
 /**
  * Posts Controller
@@ -140,5 +141,28 @@ class PostsController extends AppController
         $post = $this->Posts->sharePost($postId, $requestData);
 
         return $this->APIResponse->responseCreated($post);
+    }
+
+    /**
+     * [POST]
+     * [PRIVATE]
+     * 
+     * Toggle likes a Post
+     * 
+     * @return int - number of likes of the post
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     */
+    public function like()
+    {
+        $this->request->allowMethod('post');
+        $postId = (int) $this->request->getParam('id');
+        $userId = (int) $this->Auth->user('id');
+        if ( ! $this->Posts->exists(['id' => $postId])) {
+            throw new PostNotFoundException($postId);
+        }
+        $this->Posts->Likes->toggleLike($userId, $postId);
+
+        return $this->APIResponse->responseOk();
     }
 }
