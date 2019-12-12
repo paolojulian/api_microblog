@@ -150,14 +150,11 @@ class CommentsTable extends Table
      * 
      * @return App\Model\Entity\Comment
      * 
-     * @throws \App\Exception\CommentNotFoundException
      * @throws \App\Exception\ValidationErrorsException
      * @throws \Cake\Http\Exception\InternalErrorException
      */
     public function editComment(int $commentId, array $data)
     {
-        $this->isExistOrThrow($commentId);
-
         $comment = $this->get($commentId);
         $comment = $this->patchEntity($comment, $data, [
             'fields' => ['body']
@@ -175,7 +172,26 @@ class CommentsTable extends Table
     }
 
     /**
-     * Check if post exists else it will throw not found
+     * Adds a comment to a post
+     * 
+     * @param int $postId - The post to be inserted with a comment
+     * @param array $data - Data to be inserted
+     * 
+     * @return true
+     * 
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function deleteComment(int $commentId)
+    {
+        $comment = $this->get($commentId);
+        if ( ! $this->delete($comment)) {
+            throw new InternalErrorException();
+        }
+        return true;
+    }
+
+    /**
+     * Check if comment exists else it will throw not found
      * 
      * @param int $commentId - comments.id to be checked
      * 

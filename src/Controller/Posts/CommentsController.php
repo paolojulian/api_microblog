@@ -96,8 +96,9 @@ class CommentsController extends AppController
     {
         $this->request->allowMethod('put');
         $postId = $this->request->getParam('id');
-        $this->Comments->Posts->isExistOrThrow($postId);
         $commentId = $this->request->getParam('commentId');
+        $this->Comments->Posts->isExistOrThrow($postId);
+        $this->Comments->isExistOrThrow($commentId);
 
         $requestData = $this->request->getData();
         $requestData['post_id'] = $postId;
@@ -105,5 +106,32 @@ class CommentsController extends AppController
         $comment = $this->Comments->editComment($commentId, $requestData);
 
         return $this->APIResponse->responseCreated($comment);
+    }
+
+    /**
+     * [DELETE]
+     * [PRIVATE]
+     * 
+     * Deletes a post
+     * post should be owned by the current user
+     *
+     * @return \Cake\Http\Response|null
+     * 
+     * @throws \App\Exception\PostNotFoundException
+     * @throws \App\Exception\CommentNotFoundException
+     * @throws \App\Exception\ValidationErrorsException
+     * @throws \Cake\Http\Exception\InternalErrorException
+     */
+    public function delete()
+    {
+        $this->request->allowMethod('put');
+        $postId = $this->request->getParam('id');
+        $commentId = $this->request->getParam('commentId');
+        $this->Comments->Posts->isExistOrThrow($postId);
+        $this->Comments->isExistOrThrow($commentId);
+
+        $comment = $this->Comments->deleteComment($commentId);
+
+        return $this->APIResponse->responseOk();
     }
 }
